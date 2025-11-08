@@ -4,7 +4,6 @@
 #include <QSizePolicy>
 #include <QDebug>
 
-
 CameraWidget::CameraWidget(Source source, int w, int h, int fps, int flip, QWidget* parent)
 : QWidget(parent), outW_(w), outH_(h) {
 auto *layout = new QVBoxLayout(this);
