@@ -68,11 +68,17 @@ void CameraWidget::captureImage() {
         return;
     }
 
+    // Tạo thư mục lưu
     QString saveDir = QDir::homePath() + "/camera-picture/";
     QDir().mkpath(saveDir);
 
+    // Xoay 180° trước khi lưu để đúng hướng
+    cv::Mat flipped;
+    cv::flip(currentFrame_, flipped, -1); // -1 = xoay 180° (lật ngang + dọc)
+
     QString filename = saveDir + QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss") + ".jpg";
-    cv::imwrite(filename.toStdString(), currentFrame_);
+    cv::imwrite(filename.toStdString(), flipped);
+
     qDebug() << "💾 Đã lưu hình tại:" << filename;
 }
 
