@@ -1,10 +1,10 @@
 #pragma once
 
-
 #include <QWidget>
 #include <QLabel>
 #include <QTimer>
 #include <QVBoxLayout>
+#include <QPushButton>
 #include <opencv2/opencv.hpp>
 
 
@@ -20,6 +20,7 @@ explicit CameraWidget(Source source, int w = 1280, int h = 720, int fps = 30, in
 
 private slots:
 void grabFrame();
+void captureImage();
 
 
 private:
@@ -32,6 +33,8 @@ int framerate, int flip_method);
 
 QLabel* view_ {nullptr};
 QTimer* timer_ {nullptr};
+QPushButton* captureBtn_ {nullptr};
 cv::VideoCapture cap_;
+cv::Mat currentFrame_;
 int outW_ {0}, outH_ {0};
 };
