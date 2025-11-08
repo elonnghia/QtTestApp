@@ -52,7 +52,7 @@ void CameraWidget::grabFrame() {
     currentFrame_ = frame.clone();
 
     // Xoay hình 180 độ
-    cv::rotate(frame, frame, cv::ROTATE_180);
+    cv::flip(frame, frame, -1);
 
     // Chuyển sang RGB để hiển thị
     cv::Mat rgb;
