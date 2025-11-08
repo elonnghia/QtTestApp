@@ -47,6 +47,9 @@ view_->setText("⏳ Chờ khung hình...");
 return;
 }
 
+// Xoay hình 180 độ nếu cần (flip = 180)
+cv::rotate(frame, frame, cv::ROTATE_180);
+
 
 // OpenCV trả về BGR, Qt cần RGB
 cv::Mat rgb;
