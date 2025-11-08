@@ -4,6 +4,7 @@
 #include <QSizePolicy>
 #include <QDebug>
 
+
 CameraWidget::CameraWidget(Source source, int w, int h, int fps, int flip, QWidget* parent)
 : QWidget(parent), outW_(w), outH_(h) {
 auto *layout = new QVBoxLayout(this);
@@ -64,7 +65,6 @@ view_->setPixmap(QPixmap::fromImage(img).scaled(view_->size(), Qt::KeepAspectRat
 
 
 bool CameraWidget::openUSB(int index, int w, int h, int fps) {
-// Dùng V4L2 mặc định (OpenCV trên Jetson có hỗ trợ)
 if (!cap_.open(index)) return false;
 cap_.set(cv::CAP_PROP_FRAME_WIDTH, w);
 cap_.set(cv::CAP_PROP_FRAME_HEIGHT, h);
@@ -74,7 +74,6 @@ return cap_.isOpened();
 
 
 bool CameraWidget::openCSI(int w, int h, int fps, int flip) {
-// GStreamer pipeline cho camera CSI (IMX219/IMX477) với nvarguscamerasrc
 std::string pipeline = gstreamerPipeline(w, h, w, h, fps, flip);
 return cap_.open(pipeline, cv::CAP_GSTREAMER);
 }
@@ -83,6 +82,12 @@ return cap_.open(pipeline, cv::CAP_GSTREAMER);
 std::string CameraWidget::gstreamerPipeline(int capture_width, int capture_height,
 int display_width, int display_height,
 int framerate, int flip_method) {
-// Chuỗi pipeline chuẩn từ tài liệu NVIDIA
-// nvarguscamerasrc -> nvvidconv -> BGR -> appsink
+char buffer[1024];
+snprintf(buffer, sizeof(buffer),
+"nvarguscamerasrc ! video/x-raw(memory:NVMM), width=%d, height=%d, framerate=%d/1, format=NV12 ! "
+"nvvidconv flip-method=%d ! video/x-raw, width=%d, height=%d, format=BGRx ! "
+"videoconvert ! video/x-raw, format=BGR ! appsink drop=true max-buffers=1 sync=false",
+capture_width, capture_height, framerate,
+flip_method, display_width, display_height);
+return std::string(buffer);
 }
