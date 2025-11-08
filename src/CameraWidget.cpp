@@ -1,17 +1,7 @@
 #include "CameraWidget.h"
-#include <QImage>
-#include <QPixmap>
-#include <QSizePolicy>
-#include <QDebug>
+layout->addWidget(captureBtn_);
 
 
-CameraWidget::CameraWidget(Source source, int w, int h, int fps, int flip, QWidget* parent)
-: QWidget(parent), outW_(w), outH_(h) {
-auto *layout = new QVBoxLayout(this);
-view_ = new QLabel(this);
-view_->setAlignment(Qt::AlignCenter);
-view_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-layout->addWidget(view_);
 setLayout(layout);
 
 
@@ -31,6 +21,7 @@ return;
 
 timer_ = new QTimer(this);
 connect(timer_, &QTimer::timeout, this, &CameraWidget::grabFrame);
+connect(captureBtn_, &QPushButton::clicked, this, &CameraWidget::captureImage);
 timer_->start(1000 / std::max(1, fps));
 }
 
@@ -47,23 +38,39 @@ view_->setText("⏳ Chờ khung hình...");
 return;
 }
 
-// Xoay hình 180 độ nếu cần (flip = 180)
+
+// Lưu frame hiện tại
+currentFrame_ = frame.clone();
+
+
+// Xoay hình 180 độ nếu cần
 cv::rotate(frame, frame, cv::ROTATE_180);
 
 
-// OpenCV trả về BGR, Qt cần RGB
+// Chuyển sang RGB để hiển thị
 cv::Mat rgb;
-if (frame.channels() == 3) {
 cv::cvtColor(frame, rgb, cv::COLOR_BGR2RGB);
-} else if (frame.channels() == 4) {
-cv::cvtColor(frame, rgb, cv::COLOR_BGRA2RGB);
-} else {
-cv::cvtColor(frame, rgb, cv::COLOR_GRAY2RGB);
-}
 
 
 QImage img(rgb.data, rgb.cols, rgb.rows, static_cast<int>(rgb.step), QImage::Format_RGB888);
 view_->setPixmap(QPixmap::fromImage(img).scaled(view_->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+}
+
+
+void CameraWidget::captureImage() {
+if (currentFrame_.empty()) {
+qDebug() << "⚠️ Không có khung hình để chụp.";
+return;
+}
+
+
+QString saveDir = QDir::homePath() + "/camera-picture/";
+QDir().mkpath(saveDir);
+
+
+QString filename = saveDir + QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss") + ".jpg";
+cv::imwrite(filename.toStdString(), currentFrame_);
+qDebug() << "💾 Đã lưu hình tại:" << filename;
 }
 
 
